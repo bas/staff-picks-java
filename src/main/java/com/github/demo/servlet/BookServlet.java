@@ -86,13 +86,22 @@ public class BookServlet extends HttpServlet {
                 .name("Sandy")
                 .build();
 
-        boolean showBookRating = client.boolVariation("show-book-rating", context, false);
+        boolean showBookRating = client.boolVariation("show-book-rating", context, true);
+
+        boolean showBanner = client.boolVariation("show-banner", context, true);
+
+        String configureBanner = client.stringVariation("configure-banner", context, "Get 3 books for the price of 2");
 
         try {
             List<Book> books = bookService.getBooks();
-            ctx.setVariable("showBookRating", showBookRating);
             ctx.setVariable("books", books);
+
+            ctx.setVariable("showBookRating", showBookRating);
+            ctx.setVariable("showBanner", showBanner);
+            ctx.setVariable("configureBanner", configureBanner);
+
             engine.process("books", ctx, resp.getWriter());
+            
         } catch (BookServiceException e) {
             ctx.setVariable("error", e.getMessage());
             engine.process("error", ctx, resp.getWriter());
