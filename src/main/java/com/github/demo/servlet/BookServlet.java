@@ -19,6 +19,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 
+import com.launchdarkly.sdk.*;
+import com.launchdarkly.sdk.server.*;
+
 public class BookServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -26,6 +29,8 @@ public class BookServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(BookServlet.class);
 
     private BookService bookService;
+
+    private LDClient client;
 
     public BookServlet() throws Exception {
         logger.info("Starting Bookstore Servlet...");
@@ -42,7 +47,10 @@ public class BookServlet extends HttpServlet {
         try {
             Properties launchDarklyProperties = new Properties();
             launchDarklyProperties.load(getClass().getResourceAsStream("/launchdarkly.properties"));
-            logger.debug("LaunchDarkly key:" + launchDarklyProperties.getProperty("SERVER_SIDE_SDK"));
+            String sdkKey = launchDarklyProperties.getProperty("SERVER_SIDE_SDK");
+
+            client = new LDClient(sdkKey);
+
         } catch (IOException e) {
             logger.error("failed to initialize: " + e.getMessage());
         }
@@ -74,10 +82,26 @@ public class BookServlet extends HttpServlet {
 
         resp.setContentType("text/html; charset=UTF-8");
 
+        LDContext context = LDContext.builder("context-key-123abc")
+                .name("Sandy")
+                .build();
+
+        boolean showBookRating = client.boolVariation("show-book-rating", context, true);
+
+        boolean showBanner = client.boolVariation("show-banner", context, true);
+
+        String configureBanner = client.stringVariation("configure-banner", context, "Get 3 books for the price of 2");
+
         try {
             List<Book> books = bookService.getBooks();
             ctx.setVariable("books", books);
+
+            ctx.setVariable("showBookRating", showBookRating);
+            ctx.setVariable("showBanner", showBanner);
+            ctx.setVariable("configureBanner", configureBanner);
+
             engine.process("books", ctx, resp.getWriter());
+            
         } catch (BookServiceException e) {
             ctx.setVariable("error", e.getMessage());
             engine.process("error", ctx, resp.getWriter());
@@ -86,6 +110,10 @@ public class BookServlet extends HttpServlet {
 
     @Override
     public void destroy() {
-        logger.debug("Destroying the client");
+        try {
+            client.close();
+        } catch (IOException e) {
+            logger.error("Failed to close client: ", e.getMessage());
+        }
     }
 }
