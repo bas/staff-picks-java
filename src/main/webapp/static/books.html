@@ -30,6 +30,23 @@
       border: 0 none;
       box-shadow: none;
     }
+
+    .banner{
+      display: flex;
+      margin: auto;
+      border-radius: 5px;
+      background: #D9534F;
+      padding: 10px;
+      color: #FFFFFF;
+      font-size: 18px;
+      font-weight: bold;
+      width: 600px;
+      text-align: center;
+    }
+
+    .banner span {
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
@@ -62,6 +79,10 @@
 <div class="container">
   <div class="row">
     <div class="col-sm-12 col-md-10 col-md-offset-1">
+      <div class="banner">
+        <img class="media-object" th:src="'/static/images/books.png'" alt="Books icon" />
+        <span>Sign up for our newsletter and get 10% discount on checkout!</span>
+      </div>
       <table class="table table-hover">
         <thead>
         <tr>
