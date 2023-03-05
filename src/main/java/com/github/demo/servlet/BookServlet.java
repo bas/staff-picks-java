@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 
+import com.launchdarkly.sdk.*;
 import com.launchdarkly.sdk.server.*;
 
 public class BookServlet extends HttpServlet {
@@ -81,8 +82,15 @@ public class BookServlet extends HttpServlet {
 
         resp.setContentType("text/html; charset=UTF-8");
 
+        LDContext context = LDContext.builder("context-key-123abc")
+                .name("Sandy")
+                .build();
+
+        boolean showBookRating = client.boolVariation("show-book-rating", context, false);
+
         try {
             List<Book> books = bookService.getBooks();
+            ctx.setVariable("showBookRating", showBookRating);
             ctx.setVariable("books", books);
             engine.process("books", ctx, resp.getWriter());
         } catch (BookServiceException e) {
