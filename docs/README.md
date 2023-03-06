@@ -59,7 +59,14 @@ You should see a couple of log statements from the `com.launchdarkly.sdk.server.
 
 ## Add your first feature flag.
 
-In the `doGet(HttpServletRequest req, HttpServletResponse resp)` method in `BookServlet.java` in the `try...catch` statemen add the following to get the client and create a context object:
+In the `BookServlet.java` class add the following import statements:
+
+```
+import com.launchdarkly.sdk.*;
+import com.launchdarkly.sdk.server.*;
+```
+
+Next, in the `doGet(HttpServletRequest req, HttpServletResponse resp)` method in `BookServlet.java` in the `try...catch` statemen add the following to get the client and create a context object:
 
 ```
 LDClient client = (LDClient) getServletContext().getAttribute("ldClient");
@@ -69,7 +76,7 @@ LDContext context = LDContext.builder("context-key-123abc")
   .build();
 ```
 
-Next get the flag variation for the `show-banner` feature flag and pass it to the template:
+Get the flag variation for the `show-banner` feature flag and pass it to the template:
 
 ```java
 boolean showBanner = client.boolVariation("show-banner", context, false);
