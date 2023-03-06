@@ -2,7 +2,7 @@
 
 ## Create a new environment in LaunchDarkly
 
-Follow the documentation to [create an environment](https://docs.launchdarkly.com/home/organize/environments#creating-environments) in the `staff-picks-java` project. Use your gitHub handle as the name for the environment.
+Follow the documentation to [create an environment](https://docs.launchdarkly.com/home/organize/environments#creating-environments) in the  LaunchDArkly project. Use your email name as the name for the environment.
 
 ## Install and import the SDK
 
