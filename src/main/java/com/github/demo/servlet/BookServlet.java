@@ -19,6 +19,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 
+import com.launchdarkly.sdk.*;
+import com.launchdarkly.sdk.server.*;
+
 public class BookServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -34,17 +37,6 @@ public class BookServlet extends HttpServlet {
         } catch (BookServiceException e) {
             logger.error("Failed to instantiate BookService: " + e.getMessage());
             throw e;
-        }
-    }
-
-    @Override
-    public void init() throws ServletException {
-        try {
-            Properties launchDarklyProperties = new Properties();
-            launchDarklyProperties.load(getClass().getResourceAsStream("/launchdarkly.properties"));
-            logger.debug("LaunchDarkly key:" + launchDarklyProperties.getProperty("SERVER_SIDE_SDK"));
-        } catch (IOException e) {
-            logger.error("failed to initialize: " + e.getMessage());
         }
     }
 
@@ -75,6 +67,25 @@ public class BookServlet extends HttpServlet {
         resp.setContentType("text/html; charset=UTF-8");
 
         try {
+            LDClient client = (LDClient) getServletContext().getAttribute("ldClient");
+
+            LDContext context = LDContext.builder("context-key-123abc")
+                    .name("Sandy")
+                    .set("isPremium", true)
+                    .set("categories", LDValue.buildArray().add("Fantasy").add("Programming").add("Travel").build())
+                    .build();
+
+            boolean showBanner = client.boolVariation("show-banner", context, false);
+
+            String configureBanner = client.stringVariation("configure-banner", context,
+                    "Get 3 books for the price of 2");
+
+            boolean showRatings = client.boolVariation("show-ratings", context, false);
+
+            ctx.setVariable("showBanner", showBanner);
+            ctx.setVariable("configureBanner", configureBanner);
+            ctx.setVariable("showRatings", showRatings);
+
             List<Book> books = bookService.getBooks();
             ctx.setVariable("books", books);
             engine.process("books", ctx, resp.getWriter());
@@ -84,8 +95,4 @@ public class BookServlet extends HttpServlet {
         }
     }
 
-    @Override
-    public void destroy() {
-        logger.debug("Destroying the client");
-    }
 }
