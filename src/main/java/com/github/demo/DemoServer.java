@@ -3,6 +3,8 @@ package com.github.demo;
 import java.net.URL;
 import java.net.URI;
 
+import java.util.Properties;
+
 import com.github.demo.servlet.*;
 
 import org.eclipse.jetty.server.Server;
@@ -12,6 +14,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.launchdarkly.sdk.server.*;
 
 public class DemoServer {
 
@@ -43,18 +47,30 @@ public class DemoServer {
         ctxHandler.setContextPath("/");
         ctxHandler.setBaseResource(Resource.newResource(webRootUri));
 
+        // get the server-side sdk key
+        Properties launchDarklyProperties = new Properties();
+        launchDarklyProperties.load(DemoServer.class.getClassLoader().getResourceAsStream("launchdarkly.properties"));
+        logger.info("LaunchDarkly key:" + launchDarklyProperties.getProperty("SERVER_SIDE_SDK"));
+
+        // initialize the client
+        String sdkKey = launchDarklyProperties.getProperty("SERVER_SIDE_SDK");
+        LDClient client = new LDClient(sdkKey);
+        ctxHandler.setAttribute("ldClient", client);
+
+        logWheneverAnyFlagChanges(client);
+
         ServletHolder staticFiles = new ServletHolder("static-home", DefaultServlet.class);
         staticFiles.setInitParameter("resourceBase", webRootUri.toString());
-        staticFiles.setInitParameter("dirAllowed","true");
-        staticFiles.setInitParameter("pathInfoOnly","true");
-        ctxHandler.addServlet(staticFiles,"/static/*");
+        staticFiles.setInitParameter("dirAllowed", "true");
+        staticFiles.setInitParameter("pathInfoOnly", "true");
+        ctxHandler.addServlet(staticFiles, "/static/*");
 
         ctxHandler.addServlet(StatusServlet.class, "/status");
 
         // Default servlet path, must be last
         ServletHolder books = new ServletHolder("/", BookServlet.class);
-        books.setInitParameter("dirAllowed","false");
-        books.setInitParameter("pathInfoOnly","true");
+        books.setInitParameter("dirAllowed", "false");
+        books.setInitParameter("pathInfoOnly", "true");
         ctxHandler.addServlet(books, "/");
 
         server.setHandler(ctxHandler);
@@ -73,17 +89,29 @@ public class DemoServer {
             logServerStartWithUnresolvedUri(port);
         }
         server.join();
+
+    }
+
+    private static void logWheneverAnyFlagChanges(LDClient client) {
+        client.getFlagTracker().addFlagChangeListener(event -> {
+            logger.info("Flag has changed: " + event.getKey());
+        });
     }
 
     private static void logServerStartWithUnresolvedUri(int port) {
-        logger.info("**********************************************************************************************************");
-        logger.info("Started DemoServer, but server URI could not be determined, try accessing on http://localhost:{}", port);
-        logger.info("**********************************************************************************************************");
+        logger.info(
+                "**********************************************************************************************************");
+        logger.info("Started DemoServer, but server URI could not be determined, try accessing on http://localhost:{}",
+                port);
+        logger.info(
+                "**********************************************************************************************************");
     }
 
     private static void logServerWithUri(URI serverUri) {
-        logger.info("**********************************************************************************************************");
+        logger.info(
+                "**********************************************************************************************************");
         logger.info("Started DemoServer; available at: {}://localhost:{}", serverUri.getScheme(), serverUri.getPort());
-        logger.info("**********************************************************************************************************");
+        logger.info(
+                "**********************************************************************************************************");
     }
 }
