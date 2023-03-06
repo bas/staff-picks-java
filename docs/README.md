@@ -117,7 +117,7 @@ String configureBanner = client.stringVariation("configure-banner", context, "Ge
 ctx.setVariable("configureBanner", configureBanner);
 ```
 
-Replavce the banner text:
+Replace the banner text:
 
 ```html
 <span>Sign up for our news letter and get 10% off on checkout!</span>
