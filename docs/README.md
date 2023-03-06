@@ -61,14 +61,14 @@ You should see a couple of log statements from the `com.launchdarkly.sdk.server.
 
 In the `BookServlet.java` class add the following import statements:
 
-```
+```java
 import com.launchdarkly.sdk.*;
 import com.launchdarkly.sdk.server.*;
 ```
 
 Next, in the `doGet(HttpServletRequest req, HttpServletResponse resp)` method in `BookServlet.java` in the `try...catch` statemen add the following to get the client and create a context object:
 
-```
+```java
 LDClient client = (LDClient) getServletContext().getAttribute("ldClient");
 
 LDContext context = LDContext.builder("context-key-123abc")
